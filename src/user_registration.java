@@ -24,11 +24,26 @@ public class user_registration extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
     }
     
+    registration reg = new registration();
+    
     public void clear_reg_txtfld(){
         fntf.setText(null);
         lntf.setText(null);
         untf.setText(null);
         pwpf.setText(null);
+    }
+   
+    public void confirmPass(){
+        String pw = new String(pwpf.getPassword());
+        String cpw = new String(cppf.getPassword());
+        String msg;
+        int x = reg.confirmPassword(pw, cpw);
+        if(x==1){
+            msg = "Password Matched";
+        }else{
+            msg = "Password does not match!";
+        }
+        jLabel6.setText(msg);
     }
 
     
@@ -51,6 +66,9 @@ public class user_registration extends javax.swing.JFrame {
         pwpf = new javax.swing.JPasswordField();
         jLabel4 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        cppf = new javax.swing.JPasswordField();
+        jLabel6 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
 
         registration_frame.setMinimumSize(new java.awt.Dimension(400, 400));
@@ -61,12 +79,26 @@ public class user_registration extends javax.swing.JFrame {
 
         jLabel3.setText("Username:");
 
+        pwpf.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                pwpfKeyReleased(evt);
+            }
+        });
+
         jLabel4.setText("Password:");
 
         jButton2.setText("Submit");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setText("Confirm Password:");
+
+        cppf.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                cppfKeyReleased(evt);
             }
         });
 
@@ -79,7 +111,7 @@ public class user_registration extends javax.swing.JFrame {
                 .addComponent(jButton2)
                 .addGap(27, 27, 27))
             .addGroup(registration_frameLayout.createSequentialGroup()
-                .addGap(72, 72, 72)
+                .addGap(37, 37, 37)
                 .addGroup(registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(registration_frameLayout.createSequentialGroup()
                         .addComponent(jLabel2)
@@ -92,12 +124,16 @@ public class user_registration extends javax.swing.JFrame {
                     .addGroup(registration_frameLayout.createSequentialGroup()
                         .addGroup(registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jLabel3)
-                            .addComponent(jLabel4))
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel5))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(pwpf)
-                            .addComponent(untf, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(86, Short.MAX_VALUE))
+                            .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)
+                            .addGroup(registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(pwpf)
+                                .addComponent(untf, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)
+                                .addComponent(cppf)))))
+                .addContainerGap(84, Short.MAX_VALUE))
         );
         registration_frameLayout.setVerticalGroup(
             registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -118,7 +154,13 @@ public class user_registration extends javax.swing.JFrame {
                 .addGroup(registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(pwpf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 75, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(registration_frameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cppf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(jButton2)
                 .addGap(19, 19, 19))
         );
@@ -161,19 +203,40 @@ public class user_registration extends javax.swing.JFrame {
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        registration reg = new registration();
-        
         String ln = lntf.getText();
         String fn = fntf.getText();
         String un = untf.getText();
         String pw = new String(pwpf.getPassword());
+        String cpw = new String(cppf.getPassword());
         
-        int msg = reg.register(ln, fn, un, pw);
-        if(msg==1){
-            JOptionPane.showMessageDialog(registration_frame, "Successfully Saved!");
-            this.clear_reg_txtfld();
+        int x = reg.confirmPassword(pw, cpw);
+        
+        if(!"".equals(ln) && !"".equals(fn) && !"".equals(un) && !"".equals(pw)){
+            if(x==1){
+                int y = reg.register(ln, fn, un, pw);
+                if(y==1){
+                    JOptionPane.showMessageDialog(registration_frame, "Successfully Registered!");
+                    this.clear_reg_txtfld();
+                    registration_frame.setVisible(false);
+                }
+            }else{
+                JOptionPane.showMessageDialog(registration_frame, "Password Does not Match!!!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }else{
+            JOptionPane.showMessageDialog(registration_frame, "Please fill-up the fields", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void cppfKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_cppfKeyReleased
+        // TODO add your handling code here:
+        this.confirmPass();
+    }//GEN-LAST:event_cppfKeyReleased
+
+    private void pwpfKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_pwpfKeyReleased
+        // TODO add your handling code here:
+        this.confirmPass();
+    }//GEN-LAST:event_pwpfKeyReleased
 
     /**
      * @param args the command line arguments
@@ -211,6 +274,7 @@ public class user_registration extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPasswordField cppf;
     private javax.swing.JTextField fntf;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -218,6 +282,8 @@ public class user_registration extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JTextField lntf;
     private javax.swing.JPasswordField pwpf;
     private javax.swing.JFrame registration_frame;

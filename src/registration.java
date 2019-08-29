@@ -46,4 +46,14 @@ public class registration {
         return msg;
     }
     
+    public int confirmPassword(String password, String confirmpassword){
+        int x;
+        if(password.equals(confirmpassword)){
+            x = 1;
+        }else{
+            x = 0;
+        }
+        return x;
+    }
+    
 }
