@@ -2,6 +2,7 @@
 import com.mysql.jdbc.Connection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /*
@@ -25,6 +26,7 @@ public class user_registration extends javax.swing.JFrame {
     }
     
     registration reg = new registration();
+    login_class logobj = new login_class();
     
     public void clear_reg_txtfld(){
         fntf.setText(null);
@@ -44,6 +46,21 @@ public class user_registration extends javax.swing.JFrame {
             msg = "Password does not match!";
         }
         jLabel6.setText(msg);
+    }
+    
+    public void login(){
+        String un = luntf.getText();
+        String pw = new String(lpwpf.getPassword());
+        
+        int x = logobj.login(un, pw);
+        if(x==1){
+            //System.out.println("Login Success");
+            this.setVisible(false);
+            JFrame mainpageObj = new mainpage(logobj.uname);
+            mainpageObj.setVisible(true);
+        }else{
+            JOptionPane.showMessageDialog(rootPane, "Invalid Username or Password", "LOGIN ERROR", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     
@@ -70,6 +87,11 @@ public class user_registration extends javax.swing.JFrame {
         cppf = new javax.swing.JPasswordField();
         jLabel6 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        luntf = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        lpwpf = new javax.swing.JPasswordField();
+        jButton3 = new javax.swing.JButton();
 
         registration_frame.setMinimumSize(new java.awt.Dimension(400, 400));
 
@@ -174,19 +196,61 @@ public class user_registration extends javax.swing.JFrame {
             }
         });
 
+        jLabel7.setText("Username:");
+
+        jLabel8.setText("Password:");
+
+        lpwpf.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lpwpfActionPerformed(evt);
+            }
+        });
+
+        jButton3.setText("Login");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(31, 31, 31)
-                .addComponent(jButton1)
-                .addContainerGap(296, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(31, 31, 31)
+                        .addComponent(jButton1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(80, 80, 80)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel8))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lpwpf, javax.swing.GroupLayout.DEFAULT_SIZE, 157, Short.MAX_VALUE)
+                            .addComponent(luntf))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 191, Short.MAX_VALUE)
+                .addComponent(jButton3)
+                .addGap(150, 150, 150))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(257, Short.MAX_VALUE)
+                .addGap(43, 43, 43)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(luntf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lpwpf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8))
+                .addGap(33, 33, 33)
+                .addComponent(jButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112, Short.MAX_VALUE)
                 .addComponent(jButton1)
                 .addGap(20, 20, 20))
         );
@@ -210,14 +274,19 @@ public class user_registration extends javax.swing.JFrame {
         String cpw = new String(cppf.getPassword());
         
         int x = reg.confirmPassword(pw, cpw);
+        int z = reg.checkUsername(un);
         
         if(!"".equals(ln) && !"".equals(fn) && !"".equals(un) && !"".equals(pw)){
             if(x==1){
-                int y = reg.register(ln, fn, un, pw);
-                if(y==1){
-                    JOptionPane.showMessageDialog(registration_frame, "Successfully Registered!");
-                    this.clear_reg_txtfld();
-                    registration_frame.setVisible(false);
+                if(z==0){
+                    int y = reg.register(ln, fn, un, pw);
+                    if(y==1){
+                        JOptionPane.showMessageDialog(registration_frame, "Successfully Registered!");
+                        this.clear_reg_txtfld();
+                        registration_frame.setVisible(false);
+                    }
+                }else{
+                    JOptionPane.showMessageDialog(registration_frame, "Username Already Exist!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }else{
                 JOptionPane.showMessageDialog(registration_frame, "Password Does not Match!!!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -237,6 +306,16 @@ public class user_registration extends javax.swing.JFrame {
         // TODO add your handling code here:
         this.confirmPass();
     }//GEN-LAST:event_pwpfKeyReleased
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        this.login();
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void lpwpfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lpwpfActionPerformed
+        // TODO add your handling code here:
+        this.login();
+    }//GEN-LAST:event_lpwpfActionPerformed
 
     /**
      * @param args the command line arguments
@@ -278,13 +357,18 @@ public class user_registration extends javax.swing.JFrame {
     private javax.swing.JTextField fntf;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JTextField lntf;
+    private javax.swing.JPasswordField lpwpf;
+    private javax.swing.JTextField luntf;
     private javax.swing.JPasswordField pwpf;
     private javax.swing.JFrame registration_frame;
     private javax.swing.JTextField untf;
