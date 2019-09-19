@@ -12,7 +12,7 @@ public class product {
     
     public void addProduct(String product, int quantity, Object price){
         String sql = "insert into products values(null,'"+product+"',"+quantity+","+price+");";
-        System.out.println(sql);
+        System.out.println(sql);//for commit
     }
     
 }
