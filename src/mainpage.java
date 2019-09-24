@@ -1,3 +1,14 @@
+
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.Statement;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import java.sql.ResultSet;
+import javax.swing.table.DefaultTableModel;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -15,14 +26,47 @@ public class mainpage extends javax.swing.JFrame {
      */
     public mainpage() {
         initComponents();
+        refresh();
     }
     
     public mainpage(String username) {
         initComponents();
         jLabel1.setText("Welcome "+username);
+        refresh();
     }
     
     product apobj = new product();
+    conn con = new conn();
+    
+    void clearAddProductField(){
+        proname.setText(null);
+        proqty.setValue(0);
+        proprice.setText(null);
+        proname.requestFocus();
+    }
+    
+    void refresh(){
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
+            
+            String sql = "select * from products";
+            Statement stmt = (Statement) conn.prepareCall(sql);
+            
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            //TODO Add table
+            
+            while(rs.next()){
+                
+            }
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -44,7 +88,7 @@ public class mainpage extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        product_table = new javax.swing.JTable();
 
         jLabel2.setText("Product Name:");
 
@@ -114,7 +158,7 @@ public class mainpage extends javax.swing.JFrame {
             }
         });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        product_table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -122,7 +166,7 @@ public class mainpage extends javax.swing.JFrame {
                 "id", "product", "qty", "price"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(product_table);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -157,14 +201,19 @@ public class mainpage extends javax.swing.JFrame {
         String pn = proname.getText();
         int qty = (int) proqty.getValue();
         Object price = proprice.getValue();
+        //float price = Float.parseFloat(proprice.getValue().toString());
         //System.out.println(price);
-        apobj.addProduct(pn, qty, price);
+        int r = apobj.addProduct(pn, qty, price);
+        if(r==1){
+            JOptionPane.showMessageDialog(addproductframe, "New Product Added Successfully");
+            clearAddProductField();
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        this.setVisible(false);
         addproductframe.setVisible(true);
+        addproductframe.setAlwaysOnTop(true);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -211,7 +260,7 @@ public class mainpage extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable product_table;
     private javax.swing.JTextField proname;
     private javax.swing.JFormattedTextField proprice;
     private javax.swing.JSpinner proqty;
