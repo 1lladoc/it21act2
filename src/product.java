@@ -17,9 +17,9 @@ import java.util.logging.Logger;
  * @author uxer
  */
 public class product {
-    conn con = new conn();
-    int r = 0;
+    conn con = new conn();    
     public int addProduct(String product, int quantity, Object price){
+        int r = 0;
         try{
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
@@ -69,5 +69,30 @@ public class product {
         
         return r;
     }
-    
+   
+    public int editProduct(Object id, String product_name, Object price){
+        int r = 0;
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
+            
+            String sql = "UPDATE products SET product_name = ?, price = ? WHERE id = ?;";
+            PreparedStatement pstmt = (PreparedStatement) conn.prepareStatement(sql);
+            
+            pstmt.setString(1, product_name);
+            float newprice = Float.parseFloat(price.toString());
+            pstmt.setFloat(2, newprice);
+            String newid = id.toString();
+            pstmt.setString(3, newid);
+            
+            r = pstmt.executeUpdate();
+            //System.out.println(pstmt);
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(product.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(product.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return r;
+    }
 }

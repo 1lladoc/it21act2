@@ -38,6 +38,8 @@ public class mainpage extends javax.swing.JFrame {
     product product_obj = new product();
     conn con = new conn();
     
+    Object id = null;
+    
     void clearAddProductField(){
         proname.setText(null);
         proqty.setValue(0);
@@ -84,12 +86,14 @@ public class mainpage extends javax.swing.JFrame {
         proqty = new javax.swing.JSpinner();
         jLabel4 = new javax.swing.JLabel();
         proprice = new javax.swing.JFormattedTextField();
-        jButton2 = new javax.swing.JButton();
+        add_btn = new javax.swing.JButton();
+        save_btn = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         product_table = new javax.swing.JTable();
         jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
 
         addproductframe.setMinimumSize(new java.awt.Dimension(400, 300));
 
@@ -103,10 +107,17 @@ public class mainpage extends javax.swing.JFrame {
 
         proprice.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#,##0.00"))));
 
-        jButton2.setText("Add Product");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        add_btn.setText("Add Product");
+        add_btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                add_btnActionPerformed(evt);
+            }
+        });
+
+        save_btn.setText("Save");
+        save_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                save_btnActionPerformed(evt);
             }
         });
 
@@ -117,20 +128,22 @@ public class mainpage extends javax.swing.JFrame {
             .addGroup(addproductframeLayout.createSequentialGroup()
                 .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(addproductframeLayout.createSequentialGroup()
-                        .addGap(97, 97, 97)
+                        .addGap(157, 157, 157)
+                        .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(add_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(save_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(addproductframeLayout.createSequentialGroup()
+                        .addGap(46, 46, 46)
                         .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jLabel4)
                             .addComponent(jLabel3)
                             .addComponent(jLabel2))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(proname)
-                            .addComponent(proqty, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-                            .addComponent(proprice)))
-                    .addGroup(addproductframeLayout.createSequentialGroup()
-                        .addGap(157, 157, 157)
-                        .addComponent(jButton2)))
-                .addContainerGap(63, Short.MAX_VALUE))
+                            .addComponent(proprice, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
+                            .addComponent(proqty, javax.swing.GroupLayout.Alignment.TRAILING))))
+                .addGap(114, 114, 114))
         );
         addproductframeLayout.setVerticalGroup(
             addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -148,8 +161,10 @@ public class mainpage extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(proprice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 106, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(46, 46, 46))
+                .addComponent(add_btn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(save_btn)
+                .addGap(17, 17, 17))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -187,6 +202,13 @@ public class mainpage extends javax.swing.JFrame {
             }
         });
 
+        jButton4.setText("Edit");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -196,7 +218,8 @@ public class mainpage extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
                 .addContainerGap())
@@ -211,7 +234,9 @@ public class mainpage extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton3))
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton4))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -219,7 +244,7 @@ public class mainpage extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void add_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_btnActionPerformed
         // TODO add your handling code here:
         String pn = proname.getText();
         int qty = (int) proqty.getValue();
@@ -232,12 +257,17 @@ public class mainpage extends javax.swing.JFrame {
             clearAddProductField();
             refresh();
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_add_btnActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
         addproductframe.setVisible(true);
         addproductframe.setAlwaysOnTop(true);
+        addproductframe.setLocationRelativeTo(null);
+        save_btn.setVisible(false);
+        add_btn.setVisible(true);
+        proqty.setEnabled(true);
+        this.clearAddProductField();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -247,7 +277,7 @@ public class mainpage extends javax.swing.JFrame {
         if(r == -1){
             JOptionPane.showMessageDialog(rootPane, "Please select a row","Warning",JOptionPane.WARNING_MESSAGE);
         }else{
-            Object id = product_table.getValueAt(r, 0);
+            id = product_table.getValueAt(r, 0);
             Object product_name = product_table.getValueAt(r, 1);
             int c = JOptionPane.showConfirmDialog(rootPane, "This will delete "+product_name+".\nClick OK to continue","Confirm Delete",JOptionPane.OK_CANCEL_OPTION);
             
@@ -264,6 +294,51 @@ public class mainpage extends javax.swing.JFrame {
             
         }
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+        
+        int row = product_table.getSelectedRow();
+        
+        if(row != -1){
+            addproductframe.setVisible(true);
+            addproductframe.setAlwaysOnTop(true);
+            addproductframe.setLocationRelativeTo(null);
+            add_btn.setVisible(false);
+            save_btn.setVisible(true);
+            proqty.setEnabled(false);
+            
+            id = product_table.getValueAt(row, 0);
+            Object pname = product_table.getValueAt(row, 1);
+            Object pqty = product_table.getValueAt(row, 2);
+            Object pprice = product_table.getValueAt(row, 3);
+            
+            proname.setText((String) pname);
+            proqty.setValue(Integer.valueOf(pqty.toString()));
+            proprice.setValue(Double.valueOf(pprice.toString()));
+            
+        }else{
+            JOptionPane.showMessageDialog(rootPane, "Please select a row","Warning",JOptionPane.WARNING_MESSAGE);
+        }
+        
+        
+        
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void save_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save_btnActionPerformed
+        // TODO add your handling code here:
+        String name = proname.getText();
+        Object price = proprice.getValue();
+        
+        int r = product_obj.editProduct(id, name, price);
+        if(r==1){
+            JOptionPane.showMessageDialog(addproductframe, "Product Edited");
+            addproductframe.setVisible(false);
+            this.refresh();
+        }else{
+            JOptionPane.showMessageDialog(addproductframe, "Problem Editing a product","Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_save_btnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -301,10 +376,11 @@ public class mainpage extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton add_btn;
     private javax.swing.JFrame addproductframe;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -314,5 +390,6 @@ public class mainpage extends javax.swing.JFrame {
     private javax.swing.JTextField proname;
     private javax.swing.JFormattedTextField proprice;
     private javax.swing.JSpinner proqty;
+    private javax.swing.JButton save_btn;
     // End of variables declaration//GEN-END:variables
 }
