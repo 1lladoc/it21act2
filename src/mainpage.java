@@ -1,5 +1,6 @@
 
 import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.Statement;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -14,7 +15,6 @@ import javax.swing.table.DefaultTableModel;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author uxer
@@ -28,41 +28,67 @@ public class mainpage extends javax.swing.JFrame {
         initComponents();
         refresh();
     }
-    
+
     public mainpage(String username) {
         initComponents();
-        jLabel1.setText("Welcome "+username);
+        jLabel1.setText("Welcome " + username);
         refresh();
     }
-    
+
     product product_obj = new product();
     conn con = new conn();
-    
+
     Object id = null;
-    
-    void clearAddProductField(){
+
+    void clearAddProductField() {
         proname.setText(null);
         proqty.setValue(0);
         proprice.setText(null);
         proname.requestFocus();
     }
-    
-    final void refresh(){
-        try{
+
+    final void refresh() {
+        try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
-            
+
             String sql = "select * from products";
             Statement stmt = (Statement) conn.prepareCall(sql);
-            
+
             ResultSet rs = stmt.executeQuery(sql);
+
+            DefaultTableModel model = (DefaultTableModel) product_table.getModel();
+            model.setRowCount(0);
+            while (rs.next()) {
+                model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
+            }
+
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    final void search(String keyword) {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
+
+            String sql = "SELECT * FROM products WHERE id LIKE ? OR product_name LIKE ? ";
+            PreparedStatement pstmt = (PreparedStatement) conn.prepareStatement(sql);
+
+            pstmt.setString(1, "%" + keyword + "%");
+            pstmt.setString(2, "%" + keyword + "%");
+
+            ResultSet rs = pstmt.executeQuery();
             
             DefaultTableModel model = (DefaultTableModel) product_table.getModel();
             model.setRowCount(0);
-            while(rs.next()){
-                model.addRow(new Object[]{rs.getString("id"),rs.getString("product_name"),rs.getString("quantity"),rs.getString("price")});
+            while (rs.next()) {
+                model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
             }
-            
+
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
@@ -94,6 +120,8 @@ public class mainpage extends javax.swing.JFrame {
         product_table = new javax.swing.JTable();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        keyword_tf = new javax.swing.JTextField();
+        search_btn = new javax.swing.JButton();
 
         addproductframe.setMinimumSize(new java.awt.Dimension(400, 300));
 
@@ -209,6 +237,19 @@ public class mainpage extends javax.swing.JFrame {
             }
         });
 
+        keyword_tf.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                keyword_tfKeyReleased(evt);
+            }
+        });
+
+        search_btn.setText("Search");
+        search_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                search_btnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -221,14 +262,23 @@ public class mainpage extends javax.swing.JFrame {
                     .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(keyword_tf, javax.swing.GroupLayout.PREFERRED_SIZE, 355, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(search_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(keyword_tf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(search_btn)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -252,7 +302,7 @@ public class mainpage extends javax.swing.JFrame {
         //float price = Float.parseFloat(proprice.getValue().toString());
         //System.out.println(price);
         int r = product_obj.addProduct(pn, qty, price);
-        if(r==1){
+        if (r == 1) {
             JOptionPane.showMessageDialog(addproductframe, "New Product Added Successfully");
             clearAddProductField();
             refresh();
@@ -273,72 +323,83 @@ public class mainpage extends javax.swing.JFrame {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
         int r = product_table.getSelectedRow();
-        
-        if(r == -1){
-            JOptionPane.showMessageDialog(rootPane, "Please select a row","Warning",JOptionPane.WARNING_MESSAGE);
-        }else{
+
+        if (r == -1) {
+            JOptionPane.showMessageDialog(rootPane, "Please select a row", "Warning", JOptionPane.WARNING_MESSAGE);
+        } else {
             id = product_table.getValueAt(r, 0);
             Object product_name = product_table.getValueAt(r, 1);
-            int c = JOptionPane.showConfirmDialog(rootPane, "This will delete "+product_name+".\nClick OK to continue","Confirm Delete",JOptionPane.OK_CANCEL_OPTION);
-            
-            if(c==JOptionPane.OK_OPTION){
-                int cc = JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to delete "+product_name+"?", "Delete", JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE);
-                if(cc == JOptionPane.YES_OPTION){
+            int c = JOptionPane.showConfirmDialog(rootPane, "This will delete " + product_name + ".\nClick OK to continue", "Confirm Delete", JOptionPane.OK_CANCEL_OPTION);
+
+            if (c == JOptionPane.OK_OPTION) {
+                int cc = JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to delete " + product_name + "?", "Delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (cc == JOptionPane.YES_OPTION) {
                     int re = product_obj.deleteProduct(id);
-                    if(re == 1){
-                        JOptionPane.showMessageDialog(rootPane, "Product "+product_name+" deleted!","Product Deleted",JOptionPane.WARNING_MESSAGE);
+                    if (re == 1) {
+                        JOptionPane.showMessageDialog(rootPane, "Product " + product_name + " deleted!", "Product Deleted", JOptionPane.WARNING_MESSAGE);
                         refresh();
                     }
                 }
             }
-            
+
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
-        
+
         int row = product_table.getSelectedRow();
-        
-        if(row != -1){
+
+        if (row != -1) {
             addproductframe.setVisible(true);
             addproductframe.setAlwaysOnTop(true);
             addproductframe.setLocationRelativeTo(null);
             add_btn.setVisible(false);
             save_btn.setVisible(true);
             proqty.setEnabled(false);
-            
+
             id = product_table.getValueAt(row, 0);
             Object pname = product_table.getValueAt(row, 1);
             Object pqty = product_table.getValueAt(row, 2);
             Object pprice = product_table.getValueAt(row, 3);
-            
+
             proname.setText((String) pname);
             proqty.setValue(Integer.valueOf(pqty.toString()));
             proprice.setValue(Double.valueOf(pprice.toString()));
-            
-        }else{
-            JOptionPane.showMessageDialog(rootPane, "Please select a row","Warning",JOptionPane.WARNING_MESSAGE);
+
+        } else {
+            JOptionPane.showMessageDialog(rootPane, "Please select a row", "Warning", JOptionPane.WARNING_MESSAGE);
         }
-        
-        
-        
+
+
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void save_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save_btnActionPerformed
         // TODO add your handling code here:
         String name = proname.getText();
         Object price = proprice.getValue();
-        
+
         int r = product_obj.editProduct(id, name, price);
-        if(r==1){
+        if (r == 1) {
             JOptionPane.showMessageDialog(addproductframe, "Product Edited");
             addproductframe.setVisible(false);
             this.refresh();
-        }else{
-            JOptionPane.showMessageDialog(addproductframe, "Problem Editing a product","Error",JOptionPane.ERROR_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(addproductframe, "Problem Editing a product", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_save_btnActionPerformed
+
+    private void search_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_btnActionPerformed
+        // TODO add your handling code here:
+        String keyword = keyword_tf.getText();
+        this.search(keyword);
+    }//GEN-LAST:event_search_btnActionPerformed
+
+    private void keyword_tfKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_keyword_tfKeyReleased
+        // TODO add your handling code here:
+        String keyword = keyword_tf.getText();
+        this.search(keyword);
+    }//GEN-LAST:event_keyword_tfKeyReleased
 
     /**
      * @param args the command line arguments
@@ -386,10 +447,12 @@ public class mainpage extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextField keyword_tf;
     private javax.swing.JTable product_table;
     private javax.swing.JTextField proname;
     private javax.swing.JFormattedTextField proprice;
     private javax.swing.JSpinner proqty;
     private javax.swing.JButton save_btn;
+    private javax.swing.JButton search_btn;
     // End of variables declaration//GEN-END:variables
 }
