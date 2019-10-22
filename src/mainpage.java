@@ -37,352 +37,34 @@ public class mainpage extends javax.swing.JFrame {
     public mainpage() {
         initComponents();
         refresh();
+        this.setLocationRelativeTo(null);
     }
 
     public mainpage(String username) {
         initComponents();
         jLabel1.setText("Welcome " + username);
         refresh();
+        this.setLocationRelativeTo(null);
     }
 
     product product_obj = new product();
     conn con = new conn();
 
     Object id = null;
-
-    class AutoSuggestor {
-
-    private final JTextField textField;
-    private final Window container;
-    private JPanel suggestionsPanel;
-    private JWindow autoSuggestionPopUpWindow;
-    private String typedWord;
-    private final ArrayList<String> dictionary = new ArrayList<>();
-    private int currentIndexOfSpace, tW, tH;
-    private DocumentListener documentListener = new DocumentListener() {
-        @Override
-        public void insertUpdate(DocumentEvent de) {
-            checkForAndShowSuggestions();
-        }
-
-        @Override
-        public void removeUpdate(DocumentEvent de) {
-            checkForAndShowSuggestions();
-        }
-
-        @Override
-        public void changedUpdate(DocumentEvent de) {
-            checkForAndShowSuggestions();
-        }
-    };
-    private final Color suggestionsTextColor;
-    private final Color suggestionFocusedColor;
-
-    public AutoSuggestor(JTextField textField, Window mainWindow, ArrayList<String> words, Color popUpBackground, Color textColor, Color suggestionFocusedColor, float opacity) {
-        this.textField = textField;
-        this.suggestionsTextColor = textColor;
-        this.container = mainWindow;
-        this.suggestionFocusedColor = suggestionFocusedColor;
-        this.textField.getDocument().addDocumentListener(documentListener);
-
-        setDictionary(words);
-
-        typedWord = "";
-        currentIndexOfSpace = 0;
-        tW = 0;
-        tH = 0;
-
-        autoSuggestionPopUpWindow = new JWindow(mainWindow);
-        autoSuggestionPopUpWindow.setOpacity(opacity);
-
-        suggestionsPanel = new JPanel();
-        suggestionsPanel.setLayout(new GridLayout(0, 1));
-        suggestionsPanel.setBackground(popUpBackground);
-
-        addKeyBindingToRequestFocusInPopUpWindow();
-    }
-
-    private void addKeyBindingToRequestFocusInPopUpWindow() {
-        textField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, true), "Down released");
-        textField.getActionMap().put("Down released", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {//focuses the first label on popwindow
-                for (int i = 0; i < suggestionsPanel.getComponentCount(); i++) {
-                    if (suggestionsPanel.getComponent(i) instanceof SuggestionLabel) {
-                        ((SuggestionLabel) suggestionsPanel.getComponent(i)).setFocused(true);
-                        autoSuggestionPopUpWindow.toFront();
-                        autoSuggestionPopUpWindow.requestFocusInWindow();
-                        suggestionsPanel.requestFocusInWindow();
-                        suggestionsPanel.getComponent(i).requestFocusInWindow();
-                        break;
-                    }
-                }
-            }
-        });
-        suggestionsPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0, true), "Down released");
-        suggestionsPanel.getActionMap().put("Down released", new AbstractAction() {
-            int lastFocusableIndex = 0;
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {//allows scrolling of labels in pop window (I know very hacky for now :))
-
-                ArrayList<SuggestionLabel> sls = getAddedSuggestionLabels();
-                int max = sls.size();
-
-                if (max > 1) {//more than 1 suggestion
-                    for (int i = 0; i < max; i++) {
-                        SuggestionLabel sl = sls.get(i);
-                        if (sl.isFocused()) {
-                            if (lastFocusableIndex == max - 1) {
-                                lastFocusableIndex = 0;
-                                sl.setFocused(false);
-                                autoSuggestionPopUpWindow.setVisible(false);
-                                setFocusToTextField();
-                                checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
-
-                            } else {
-                                sl.setFocused(false);
-                                lastFocusableIndex = i;
-                            }
-                        } else if (lastFocusableIndex <= i) {
-                            if (i < max) {
-                                sl.setFocused(true);
-                                autoSuggestionPopUpWindow.toFront();
-                                autoSuggestionPopUpWindow.requestFocusInWindow();
-                                suggestionsPanel.requestFocusInWindow();
-                                suggestionsPanel.getComponent(i).requestFocusInWindow();
-                                lastFocusableIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                } else {//only a single suggestion was given
-                    autoSuggestionPopUpWindow.setVisible(false);
-                    setFocusToTextField();
-                    checkForAndShowSuggestions();//fire method as if document listener change occured and fired it
-                }
-            }
-        });
-    }
-
-    private void setFocusToTextField() {
-        container.toFront();
-        container.requestFocusInWindow();
-        textField.requestFocusInWindow();
-    }
-
-    public ArrayList<SuggestionLabel> getAddedSuggestionLabels() {
-        ArrayList<SuggestionLabel> sls = new ArrayList<>();
-        for (int i = 0; i < suggestionsPanel.getComponentCount(); i++) {
-            if (suggestionsPanel.getComponent(i) instanceof SuggestionLabel) {
-                SuggestionLabel sl = (SuggestionLabel) suggestionsPanel.getComponent(i);
-                sls.add(sl);
-            }
-        }
-        return sls;
-    }
-
-    private void checkForAndShowSuggestions() {
-        typedWord = getCurrentlyTypedWord();
-
-        suggestionsPanel.removeAll();//remove previos words/jlabels that were added
-
-        //used to calcualte size of JWindow as new Jlabels are added
-        tW = 0;
-        tH = 0;
-
-        boolean added = wordTyped(typedWord);
-
-        if (!added) {
-            if (autoSuggestionPopUpWindow.isVisible()) {
-                autoSuggestionPopUpWindow.setVisible(false);
-            }
-        } else {
-            showPopUpWindow();
-            setFocusToTextField();
-        }
-    }
-
-    protected void addWordToSuggestions(String word) {
-        SuggestionLabel suggestionLabel = new SuggestionLabel(word, suggestionFocusedColor, suggestionsTextColor, this);
-
-        calculatePopUpWindowSize(suggestionLabel);
-
-        suggestionsPanel.add(suggestionLabel);
-    }
-
-    public String getCurrentlyTypedWord() {//get newest word after last white spaceif any or the first word if no white spaces
-        String text = textField.getText();
-        String wordBeingTyped = "";
-        if (text.contains(" ")) {
-            int tmp = text.lastIndexOf(" ");
-            if (tmp >= currentIndexOfSpace) {
-                currentIndexOfSpace = tmp;
-                wordBeingTyped = text.substring(text.lastIndexOf(" "));
-            }
-        } else {
-            wordBeingTyped = text;
-        }
-        return wordBeingTyped.trim();
-    }
-
-    private void calculatePopUpWindowSize(JLabel label) {
-        //so we can size the JWindow correctly
-        if (tW < label.getPreferredSize().width) {
-            tW = label.getPreferredSize().width;
-        }
-        tH += label.getPreferredSize().height;
-    }
-
-    private void showPopUpWindow() {
-        autoSuggestionPopUpWindow.getContentPane().add(suggestionsPanel);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth(), 30));
-        autoSuggestionPopUpWindow.setSize(tW, tH);
-        autoSuggestionPopUpWindow.setVisible(true);
-
-        int windowX = 0;
-        int windowY = 0;
-
-        windowX = container.getX() + textField.getX() + 5;
-        if (suggestionsPanel.getHeight() > autoSuggestionPopUpWindow.getMinimumSize().height) {
-            windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getMinimumSize().height;
-        } else {
-            windowY = container.getY() + textField.getY() + textField.getHeight() + autoSuggestionPopUpWindow.getHeight();
-        }
-
-        autoSuggestionPopUpWindow.setLocation(windowX, windowY);
-        autoSuggestionPopUpWindow.setMinimumSize(new Dimension(textField.getWidth(), 30));
-        autoSuggestionPopUpWindow.revalidate();
-        autoSuggestionPopUpWindow.repaint();
-
-    }
-
-    public void setDictionary(ArrayList<String> words) {
-        dictionary.clear();
-        if (words == null) {
-            return;//so we can call constructor with null value for dictionary without exception thrown
-        }
-        for (String word : words) {
-            dictionary.add(word);
-        }
-    }
-
-    public JWindow getAutoSuggestionPopUpWindow() {
-        return autoSuggestionPopUpWindow;
-    }
-
-    public Window getContainer() {
-        return container;
-    }
-
-    public JTextField getTextField() {
-        return textField;
-    }
-
-    public void addToDictionary(String word) {
-        dictionary.add(word);
-    }
-
-    boolean wordTyped(String typedWord) {
-
-        if (typedWord.isEmpty()) {
-            return false;
-        }
-        //System.out.println("Typed word: " + typedWord);
-
-        boolean suggestionAdded = false;
-
-        for (String word : dictionary) {//get words in the dictionary which we added
-            boolean fullymatches = true;
-            for (int i = 0; i < typedWord.length(); i++) {//each string in the word
-                if (!typedWord.toLowerCase().startsWith(String.valueOf(word.toLowerCase().charAt(i)), i)) {//check for match
-                    fullymatches = false;
-                    break;
-                }
-            }
-            if (fullymatches) {
-                addWordToSuggestions(word);
-                suggestionAdded = true;
-            }
-        }
-        return suggestionAdded;
-    }
-}
-
-class SuggestionLabel extends JLabel {
-
-    private boolean focused = false;
-    private final JWindow autoSuggestionsPopUpWindow;
-    private final JTextField textField;
-    private final AutoSuggestor autoSuggestor;
-    private Color suggestionsTextColor, suggestionBorderColor;
-
-    public SuggestionLabel(String string, final Color borderColor, Color suggestionsTextColor, AutoSuggestor autoSuggestor) {
-        super(string);
-
-        this.suggestionsTextColor = suggestionsTextColor;
-        this.autoSuggestor = autoSuggestor;
-        this.textField = autoSuggestor.getTextField();
-        this.suggestionBorderColor = borderColor;
-        this.autoSuggestionsPopUpWindow = autoSuggestor.getAutoSuggestionPopUpWindow();
-
-        initComponent();
-    }
-
-    private void initComponent() {
-        setFocusable(true);
-        setForeground(suggestionsTextColor);
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent me) {
-                super.mouseClicked(me);
-
-                replaceWithSuggestedText();
-
-                autoSuggestionsPopUpWindow.setVisible(false);
-            }
-        });
-
-        getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), "Enter released");
-        getActionMap().put("Enter released", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                replaceWithSuggestedText();
-                autoSuggestionsPopUpWindow.setVisible(false);
-            }
-        });
-    }
-
-    public void setFocused(boolean focused) {
-        if (focused) {
-            setBorder(new LineBorder(suggestionBorderColor));
-        } else {
-            setBorder(null);
-        }
-        repaint();
-        this.focused = focused;
-    }
-
-    public boolean isFocused() {
-        return focused;
-    }
-
-    private void replaceWithSuggestedText() {
-        String suggestedWord = getText();
-        String text = textField.getText();
-        String typedWord = autoSuggestor.getCurrentlyTypedWord();
-        String t = text.substring(0, text.lastIndexOf(typedWord));
-        String tmp = t + text.substring(text.lastIndexOf(typedWord)).replace(typedWord, suggestedWord);
-        textField.setText(tmp + " ");
-    }
-}
     
     void clearAddProductField() {
         proname.setText(null);
         proqty.setValue(0);
         proprice.setText(null);
         proname.requestFocus();
+        xst_qty.setText(null);
+    }
+    
+    void enableAndClearFields(){
+        proname.setEnabled(true);
+        proqty.setEnabled(true);
+        proprice.setEnabled(true);
+        clearAddProductField();
     }
 
     final void refresh() {
@@ -426,21 +108,6 @@ class SuggestionLabel extends JLabel {
             while (rs.next()) {
                 model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
             }
-            
-            AutoSuggestor autoSuggestor = new AutoSuggestor(keyword_tf,this ,null ,Color.WHITE.brighter(), Color.BLUE, Color.RED, 0.75f) {
-                boolean wordTyped(String typedWord) {
-                    ArrayList<String> words = new ArrayList<>();
-                    //TODO Fix Here Add rs data words.add(rs)
-//                    while (rs.next()) {
-//                        words.add(rs.getString("product_name"));
-//                        //model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
-//                    }
-                    
-                    setDictionary(words);
-              
-                    return super.wordTyped(typedWord);
-                }
-            };
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
@@ -467,6 +134,8 @@ class SuggestionLabel extends JLabel {
         proprice = new javax.swing.JFormattedTextField();
         add_btn = new javax.swing.JButton();
         save_btn = new javax.swing.JButton();
+        xst_qty = new javax.swing.JLabel();
+        addqty_btn = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -475,6 +144,7 @@ class SuggestionLabel extends JLabel {
         jButton4 = new javax.swing.JButton();
         keyword_tf = new javax.swing.JTextField();
         search_btn = new javax.swing.JButton();
+        add_qty = new javax.swing.JButton();
 
         addproductframe.setMinimumSize(new java.awt.Dimension(400, 300));
 
@@ -502,17 +172,19 @@ class SuggestionLabel extends JLabel {
             }
         });
 
+        addqty_btn.setText("Add Quantity");
+        addqty_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addqty_btnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout addproductframeLayout = new javax.swing.GroupLayout(addproductframe.getContentPane());
         addproductframe.getContentPane().setLayout(addproductframeLayout);
         addproductframeLayout.setHorizontalGroup(
             addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(addproductframeLayout.createSequentialGroup()
                 .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(addproductframeLayout.createSequentialGroup()
-                        .addGap(157, 157, 157)
-                        .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(add_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(save_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(addproductframeLayout.createSequentialGroup()
                         .addGap(46, 46, 46)
                         .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -522,8 +194,18 @@ class SuggestionLabel extends JLabel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(proname)
-                            .addComponent(proprice, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
-                            .addComponent(proqty, javax.swing.GroupLayout.Alignment.TRAILING))))
+                            .addComponent(proprice, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, addproductframeLayout.createSequentialGroup()
+                                .addComponent(xst_qty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(proqty, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(addproductframeLayout.createSequentialGroup()
+                        .addGap(157, 157, 157)
+                        .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(add_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(save_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(addqty_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addGap(114, 114, 114))
         );
         addproductframeLayout.setVerticalGroup(
@@ -536,12 +218,15 @@ class SuggestionLabel extends JLabel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(proqty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(proqty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(xst_qty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(addproductframeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(proprice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 106, Short.MAX_VALUE)
+                .addGap(77, 77, 77)
+                .addComponent(addqty_btn)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(add_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(save_btn)
@@ -603,6 +288,13 @@ class SuggestionLabel extends JLabel {
             }
         });
 
+        add_qty.setText("Add Quantity");
+        add_qty.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                add_qtyActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -613,10 +305,11 @@ class SuggestionLabel extends JLabel {
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(add_qty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 466, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(keyword_tf, javax.swing.GroupLayout.PREFERRED_SIZE, 355, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -639,7 +332,9 @@ class SuggestionLabel extends JLabel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton4))
+                        .addComponent(jButton4)
+                        .addGap(129, 129, 129)
+                        .addComponent(add_qty))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -669,8 +364,9 @@ class SuggestionLabel extends JLabel {
         addproductframe.setLocationRelativeTo(null);
         save_btn.setVisible(false);
         add_btn.setVisible(true);
-        proqty.setEnabled(true);
-        this.clearAddProductField();
+        addqty_btn.setVisible(false);
+        
+        this.enableAndClearFields();
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -701,6 +397,7 @@ class SuggestionLabel extends JLabel {
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
 
+        this.enableAndClearFields();
         int row = product_table.getSelectedRow();
 
         if (row != -1) {
@@ -709,6 +406,7 @@ class SuggestionLabel extends JLabel {
             addproductframe.setLocationRelativeTo(null);
             add_btn.setVisible(false);
             save_btn.setVisible(true);
+            addqty_btn.setVisible(false);
             proqty.setEnabled(false);
 
             id = product_table.getValueAt(row, 0);
@@ -754,6 +452,53 @@ class SuggestionLabel extends JLabel {
         this.search(keyword);
     }//GEN-LAST:event_keyword_tfKeyReleased
 
+    private void add_qtyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_qtyActionPerformed
+        // TODO add your handling code here:
+           this.enableAndClearFields();
+           int row = product_table.getSelectedRow();
+           if(row != -1){
+                addproductframe.setVisible(true);
+                addproductframe.setAlwaysOnTop(true);
+                addproductframe.setLocationRelativeTo(this);
+                add_btn.setVisible(false);
+                save_btn.setVisible(false);
+                addqty_btn.setVisible(true);
+                
+                id = product_table.getValueAt(row, 0);
+                Object pn = product_table.getValueAt(row, 1);
+                Object qt = product_table.getValueAt(row, 2);
+                Object pr = product_table.getValueAt(row, 3);
+                
+                proname.setText(pn.toString());
+                xst_qty.setText(qt.toString());
+                proprice.setValue(Double.valueOf(pr.toString()));
+                
+                proname.setEnabled(false);
+                proprice.setEnabled(false);
+                
+           }else{
+               JOptionPane.showMessageDialog(rootPane, "Please select a row", "Warning", JOptionPane.WARNING_MESSAGE);
+           }
+        
+    }//GEN-LAST:event_add_qtyActionPerformed
+
+    private void addqty_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addqty_btnActionPerformed
+        // TODO add your handling code here:
+        Object pn = proname.getText();
+        Object qty = proqty.getValue();
+        int c = JOptionPane.showConfirmDialog(addproductframe, "Would you like to add\n"+qty+ "\nto the product\n"+pn+"?", "Add Quantity", JOptionPane.YES_NO_OPTION);
+        if(c==JOptionPane.YES_OPTION){
+            int r = product_obj.addQuantity(id, qty);
+            if(r==1){
+                JOptionPane.showMessageDialog(addproductframe, "Product Quantity Updated!");
+                addproductframe.setVisible(false);
+                this.refresh();
+            }else{
+                JOptionPane.showMessageDialog(addproductframe, "Problem Updating a product", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_addqty_btnActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -791,7 +536,9 @@ class SuggestionLabel extends JLabel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton add_btn;
+    private javax.swing.JButton add_qty;
     private javax.swing.JFrame addproductframe;
+    private javax.swing.JButton addqty_btn;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -807,5 +554,6 @@ class SuggestionLabel extends JLabel {
     private javax.swing.JSpinner proqty;
     private javax.swing.JButton save_btn;
     private javax.swing.JButton search_btn;
+    private javax.swing.JLabel xst_qty;
     // End of variables declaration//GEN-END:variables
 }
