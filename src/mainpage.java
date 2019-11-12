@@ -38,6 +38,7 @@ public class mainpage extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         refreshThread.start();
+        checkLowQuantity.start();
     }
 
     public mainpage(String username) {
@@ -45,6 +46,7 @@ public class mainpage extends javax.swing.JFrame {
         jLabel1.setText("Welcome " + username);
         this.setLocationRelativeTo(null);
         refreshThread.start();
+        checkLowQuantity.start();
     }
 
     product product_obj = new product();
@@ -105,6 +107,21 @@ public class mainpage extends javax.swing.JFrame {
         }
     
     });
+    
+    Thread checkLowQuantity = new Thread(new Runnable(){
+       Notification n = new Notification();
+       @Override
+       public void run(){
+           try{
+               while(true){
+                   n.checkLowProduct();
+                   Thread.sleep(5000);
+               }
+           } catch (InterruptedException ex) {
+               Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
+           }
+       }
+    });
 
     final void search(String keyword) {
         try {
@@ -132,6 +149,9 @@ public class mainpage extends javax.swing.JFrame {
         }
     }
 
+    
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
