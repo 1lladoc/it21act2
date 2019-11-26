@@ -39,11 +39,9 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" max="-2" attributes="0">
                               <Component id="jLabel6" pref="181" max="32767" attributes="0"/>
-                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="pwpf" max="32767" attributes="0"/>
-                                  <Component id="untf" pref="181" max="32767" attributes="0"/>
-                                  <Component id="cppf" max="32767" attributes="0"/>
-                              </Group>
+                              <Component id="pwpf" max="32767" attributes="0"/>
+                              <Component id="untf" pref="181" max="32767" attributes="0"/>
+                              <Component id="cppf" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>

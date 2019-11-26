@@ -55,9 +55,16 @@ public class user_registration extends javax.swing.JFrame {
         int x = logobj.login(un, pw);
         if(x==1){
             //System.out.println("Login Success");
-            this.setVisible(false);
-            JFrame mainpageObj = new mainpage(logobj.uname);
-            mainpageObj.setVisible(true);
+            if(logobj.usertype == 0){
+                JOptionPane.showMessageDialog(rootPane, "Username not confirmed by administrator", "LOGIN WARNING", JOptionPane.WARNING_MESSAGE);
+            }else if(logobj.usertype == 1){
+                //POS
+            }else if(logobj.usertype == 2){
+                this.setVisible(false);
+                JFrame mainpageObj = new mainpage(logobj.uname);
+                mainpageObj.setVisible(true);
+            }
+            
         }else{
             JOptionPane.showMessageDialog(rootPane, "Invalid Username or Password", "LOGIN ERROR", JOptionPane.ERROR_MESSAGE);
         }

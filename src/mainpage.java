@@ -37,18 +37,24 @@ public class mainpage extends javax.swing.JFrame {
     public mainpage() {
         initComponents();
         this.setLocationRelativeTo(null);
-        refreshThread.start();
-        checkLowQuantity.start();
+        product_obj.search("", product_table);
+        refreshQuantity.start();
+        checkLowQuantity.start();  
     }
 
     public mainpage(String username) {
         initComponents();
         jLabel1.setText("Welcome " + username);
         this.setLocationRelativeTo(null);
-        refreshThread.start();
-        checkLowQuantity.start();
+        product_obj.search("", product_table);
+        refreshQuantity.start();
+        checkLowQuantity.start();  
     }
 
+    String getSearchKeyword(){
+        return keyword_tf.getText();
+    }
+    
     product product_obj = new product();
     conn con = new conn();
 
@@ -69,45 +75,7 @@ public class mainpage extends javax.swing.JFrame {
         clearAddProductField();
     }
 
-    final void refresh() {
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
-
-            String sql = "select * from products";
-            Statement stmt = (Statement) conn.prepareCall(sql);
-
-            ResultSet rs = stmt.executeQuery(sql);
-
-            DefaultTableModel model = (DefaultTableModel) product_table.getModel();
-            model.setRowCount(0);
-            while (rs.next()) {
-                model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
-            }
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    Thread refreshThread = new Thread(new Runnable(){
-    
-        @Override
-        public void run(){
-            try{
-                while(true){
-                    refresh();
-                    Thread.sleep(5000);
-                } 
-            } catch (InterruptedException ex) {
-                Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    
-    });
-    
+  
     Thread checkLowQuantity = new Thread(new Runnable(){
        Notification n = new Notification();
        @Override
@@ -115,7 +83,7 @@ public class mainpage extends javax.swing.JFrame {
            try{
                while(true){
                    n.checkLowProduct();
-                   Thread.sleep(5000);
+                   Thread.sleep(1000);
                }
            } catch (InterruptedException ex) {
                Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
@@ -123,12 +91,13 @@ public class mainpage extends javax.swing.JFrame {
        }
     });
 
-    final void search(String keyword) {
+    
+    final void refreshQuantity(String keyword) {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = (Connection) DriverManager.getConnection(con.url, con.username, con.password);
 
-            String sql = "SELECT * FROM products WHERE id LIKE ? OR product_name LIKE ? ";
+            String sql = "SELECT quantity FROM products WHERE id LIKE ? OR product_name LIKE ? ";
             PreparedStatement pstmt = (PreparedStatement) conn.prepareStatement(sql);
 
             pstmt.setString(1, "%" + keyword + "%");
@@ -137,9 +106,12 @@ public class mainpage extends javax.swing.JFrame {
             ResultSet rs = pstmt.executeQuery();
             
             DefaultTableModel model = (DefaultTableModel) product_table.getModel();
-            model.setRowCount(0);
+            int row = 0;
             while (rs.next()) {
-                model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
+                int qty = rs.getInt("quantity");
+                //model.addRow(new Object[]{rs.getString("id"), rs.getString("product_name"), rs.getString("quantity"), rs.getString("price")});
+                model.setValueAt(qty, row, 2);
+                row++;
             }
 
         } catch (ClassNotFoundException ex) {
@@ -149,7 +121,20 @@ public class mainpage extends javax.swing.JFrame {
         }
     }
 
-    
+    Thread refreshQuantity = new Thread(new Runnable(){
+            
+            @Override
+            public void run(){
+                try{
+                    while(true){
+                        refreshQuantity(getSearchKeyword());
+                        Thread.sleep(1000);
+                    }                  
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(mainpage.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            });
     
     
     /**
@@ -390,7 +375,7 @@ public class mainpage extends javax.swing.JFrame {
         if (r == 1) {
             JOptionPane.showMessageDialog(addproductframe, "New Product Added Successfully");
             clearAddProductField();
-            refresh();
+            product_obj.search("", product_table);
         }
     }//GEN-LAST:event_add_btnActionPerformed
 
@@ -423,7 +408,7 @@ public class mainpage extends javax.swing.JFrame {
                     int re = product_obj.deleteProduct(id);
                     if (re == 1) {
                         JOptionPane.showMessageDialog(rootPane, "Product " + product_name + " deleted!", "Product Deleted", JOptionPane.WARNING_MESSAGE);
-                        refresh();
+                        product_obj.search("", product_table);
                     }
                 }
             }
@@ -471,7 +456,7 @@ public class mainpage extends javax.swing.JFrame {
         if (r == 1) {
             JOptionPane.showMessageDialog(addproductframe, "Product Edited");
             addproductframe.setVisible(false);
-            this.refresh();
+            product_obj.search("", product_table);
         } else {
             JOptionPane.showMessageDialog(addproductframe, "Problem Editing a product", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -480,13 +465,13 @@ public class mainpage extends javax.swing.JFrame {
     private void search_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_btnActionPerformed
         // TODO add your handling code here:
         String keyword = keyword_tf.getText();
-        this.search(keyword);
+        product_obj.search(keyword, product_table);
     }//GEN-LAST:event_search_btnActionPerformed
 
     private void keyword_tfKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_keyword_tfKeyReleased
         // TODO add your handling code here:
         String keyword = keyword_tf.getText();
-        this.search(keyword);
+        product_obj.search(keyword, product_table);
     }//GEN-LAST:event_keyword_tfKeyReleased
 
     private void add_qtyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_qtyActionPerformed
@@ -529,7 +514,7 @@ public class mainpage extends javax.swing.JFrame {
             if(r==1){
                 JOptionPane.showMessageDialog(addproductframe, "Product Quantity Updated!");
                 addproductframe.setVisible(false);
-                this.refresh();
+                product_obj.search("", product_table);
             }else{
                 JOptionPane.showMessageDialog(addproductframe, "Problem Updating a product", "Error", JOptionPane.ERROR_MESSAGE);
             }

@@ -20,6 +20,7 @@ import java.sql.SQLException;
 public class login_class {
     conn con = new conn();
     protected String uname;
+    protected int usertype;
     
     public int login(String username, String password){
         int x = 0;
@@ -38,6 +39,7 @@ public class login_class {
             if(rs.next()){
                 x = 1;
                 uname = rs.getString("username");
+                usertype = rs.getInt("type");
               //  System.out.println(id);
             }else{
                 x = 0;
